@@ -1,4 +1,4 @@
-package com.mazhen;
+package com.mazhen.papercrawler;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
