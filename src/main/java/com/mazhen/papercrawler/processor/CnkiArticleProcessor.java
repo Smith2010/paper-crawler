@@ -1,10 +1,8 @@
 package com.mazhen.papercrawler.processor;
 
-import com.alibaba.fastjson.JSONObject;
 import com.mazhen.papercrawler.entity.CnkiArticleInfo;
 import com.mazhen.papercrawler.util.DataUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
@@ -14,7 +12,7 @@ import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Selectable;
 
-import java.util.*;
+import java.util.Date;
 
 /**
  * Created by smithma on 24/05/2017.
@@ -29,17 +27,17 @@ public class CnkiArticleProcessor implements PageProcessor {
 
 	private Site site = Site.me().setCycleRetryTimes(3).setTimeOut(10000);
 
-//	@Override
-//	public void process(Page page) {
-//		page.addTargetRequests(page.getHtml().links().regex(URL_JOURNAL).all());
-//
-//		if (page.getUrl().regex(URL_JOURNAL).match()) {
-//			page.addTargetRequests(page.getHtml().links().regex(URL_ARTICLE).all());
-//		} else if (page.getUrl().regex(URL_ARTICLE).match()) {
-//			CnkiArticleInfo info = getCnkiArticleInfo(page);
-//			page.putField("info", info);
-//		}
-//	}
+	//	@Override
+	//	public void process(Page page) {
+	//		page.addTargetRequests(page.getHtml().links().regex(URL_JOURNAL).all());
+	//
+	//		if (page.getUrl().regex(URL_JOURNAL).match()) {
+	//			page.addTargetRequests(page.getHtml().links().regex(URL_ARTICLE).all());
+	//		} else if (page.getUrl().regex(URL_ARTICLE).match()) {
+	//			CnkiArticleInfo info = getCnkiArticleInfo(page);
+	//			page.putField("info", info);
+	//		}
+	//	}
 
 	@Override
 	public void process(Page page) {
@@ -50,16 +48,14 @@ public class CnkiArticleProcessor implements PageProcessor {
 	private CnkiArticleInfo getCnkiArticleInfo(Page page) {
 		CnkiArticleInfo info = new CnkiArticleInfo();
 		info.setExtractDate(DateFormatUtils.format(new Date(), "yyyy-MM-dd"));
-		info.setUrl(page.getUrl().toString());
 
 		processTitleDiv(page.getHtml().xpath("//div[@class='wxTitle']"), info);
 		processBaseInfoDiv(page.getHtml().xpath("//div[@class='wxBaseinfo']"), info);
 		processSourInfoDiv(page.getHtml().xpath("//div[@class='sourinfo']"), info);
-		info.setCitations(DataUtils.removeBracket(page.getHtml().xpath("//div[@class='MapAreaLeft']/div[@class='map']/div[@class='yzwx']/span/text(0)").toString()));
 
-
-		info.setSummary(page.getHtml().xpath("//div[@class='wxBaseInfo']/p/span[@id='ChDivSummary']/text(0)").toString());
-//		info.setKeywords(extractKeywords(page.getHtml().xpath("//span[@class='Keyword']/html()")));
+		info.setCitations(DataUtils.removeBracket(
+			page.getHtml().xpath("//div[@class='MapAreaLeft']/div[@class='map']/div[@class='yzwx']/span/text(0)").toString()));
+		info.setUrl(page.getUrl().toString());
 
 		return info;
 	}
