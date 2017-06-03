@@ -1,11 +1,17 @@
 package com.mazhen.papercrawler.util;
 
 import org.apache.commons.lang3.StringUtils;
+import us.codecraft.webmagic.selector.Selectable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by smithma on 01/06/2017.
  */
 public class DataUtils {
+
+	private DataUtils() {}
 
 	public static String transformNumber(String number) {
 		if (StringUtils.isBlank(number)) {
@@ -16,5 +22,22 @@ public class DataUtils {
 		} else {
 			return number;
 		}
+	}
+
+	public static String removeBracket(String string) {
+		return StringUtils.removeEnd(StringUtils.removeStart(string, "("), ")");
+	}
+
+	public static  String transformNodeList(Selectable selectable) {
+		return selectable.nodes().isEmpty() ? null : StringUtils.join(selectable.all(), ",");
+	}
+
+	public static  String transformNodeList(Selectable selectable, String removedSuffix) {
+		List<String> list = new ArrayList<>();
+		for (Selectable node : selectable.nodes()) {
+			list.add(StringUtils.removeEnd(node.toString(), removedSuffix));
+		}
+
+		return list.isEmpty() ? null : StringUtils.join(list, ",");
 	}
 }

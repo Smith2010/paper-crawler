@@ -52,7 +52,7 @@ public class SpringerArticleProcessor implements PageProcessor {
 		info.setArticleCitationIssue(page.getHtml().xpath("//a[@class='ArticleCitation_Issue']/@title").toString());
 		info.setArticleCitationPages(
 			StringUtils.removeStart(page.getHtml().xpath("//span[@class='ArticleCitation_Pages']/text(0)").toString(), " "));
-		info.setAuthors(extractAuthors(page.getHtml().xpath("//span[@class='authors__name']/text(0)")));
+		info.setAuthors(DataUtils.transformNodeList(page.getHtml().xpath("//span[@class='authors__name']/text(0)")));
 		info.setAffiliations(extractAffiliations(page.getHtml().xpath("//div[@class='content authors-affiliations u-interface']")));
 
 		info.setFirstOnline(page.getHtml().xpath("//dd[@class='article-dates__first-online']/time/@datetime").toString());
@@ -64,10 +64,6 @@ public class SpringerArticleProcessor implements PageProcessor {
 		info.setKeywords(extractKeywords(page.getHtml().xpath("//span[@class='Keyword']/html()")));
 		info.setUrl(page.getUrl().toString());
 		return info;
-	}
-
-	private String extractAuthors(Selectable authors) {
-		return authors.nodes().isEmpty() ? null : StringUtils.join(authors.all(), ",");
 	}
 
 	private String extractAffiliations(Selectable authorsAndAffiliations) {

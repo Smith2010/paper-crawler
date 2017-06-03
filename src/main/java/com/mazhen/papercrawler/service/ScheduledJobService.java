@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.model.OOSpider;
-import us.codecraft.webmagic.pipeline.ConsolePipeline;
 
 /**
  * Created by smithma on 31/05/2017.

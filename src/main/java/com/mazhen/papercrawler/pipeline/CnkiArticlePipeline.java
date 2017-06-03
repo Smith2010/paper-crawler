@@ -1,7 +1,7 @@
 package com.mazhen.papercrawler.pipeline;
 
-import com.mazhen.papercrawler.entity.SpringerArticleInfo;
-import com.mazhen.papercrawler.repository.SpringerArticleRepository;
+import com.mazhen.papercrawler.entity.CnkiArticleInfo;
+import com.mazhen.papercrawler.repository.CnkiArticleRepository;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
@@ -13,16 +13,16 @@ import javax.annotation.Resource;
  * Created by smithma on 28/05/2017.
  */
 @Component
-public class SpringerArticlePipeline implements Pipeline {
+public class CnkiArticlePipeline implements Pipeline {
 
 	@Resource
-	private SpringerArticleRepository springerArticleRepository;
+	private CnkiArticleRepository cnkiArticleRepository;
 
 	@Override
 	public void process(ResultItems resultItems, Task task) {
-		SpringerArticleInfo info = resultItems.get("info");
+		CnkiArticleInfo info = resultItems.get("info");
 		if (info != null) {
-			springerArticleRepository.saveAndFlush(info);
+			cnkiArticleRepository.saveAndFlush(info);
 		}
 	}
 }
