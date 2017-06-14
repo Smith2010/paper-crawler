@@ -23,19 +23,19 @@ import java.util.*;
 @Component
 public class SpringerArticleProcessor implements PageProcessor {
 
-	private static final String URL_JOURNAL = "(https://link\\.springer\\.com/journal/[\\d\\-]+/[\\d\\-]+/[\\d\\-]+/page/[\\d\\-]+)";
+	private static final String URL_JOURNAL_PATTERN = "(https://link\\.springer\\.com/journal/[\\d\\-]+/[\\d\\-]+/[\\d\\-]+/page/[\\d\\-]+)";
 
-	private static final String URL_ARTICLE = "(https://link\\.springer\\.com/article/[\\S\\-]+(?<!html)$)";
+	private static final String URL_ARTICLE_PATTERN = "(https://link\\.springer\\.com/article/[\\S\\-]+(?<!html)$)";
 
-	private Site site = Site.me().setCycleRetryTimes(3).setTimeOut(10000);
+	private Site site = Site.me().setCharset("UTF-8").setCycleRetryTimes(3).setTimeOut(10000);
 
 	@Override
 	public void process(Page page) {
-		page.addTargetRequests(page.getHtml().links().regex(URL_JOURNAL).all());
+		page.addTargetRequests(page.getHtml().links().regex(URL_JOURNAL_PATTERN).all());
 
-		if (page.getUrl().regex(URL_JOURNAL).match()) {
-			page.addTargetRequests(page.getHtml().links().regex(URL_ARTICLE).all());
-		} else if (page.getUrl().regex(URL_ARTICLE).match()) {
+		if (page.getUrl().regex(URL_JOURNAL_PATTERN).match()) {
+			page.addTargetRequests(page.getHtml().links().regex(URL_ARTICLE_PATTERN).all());
+		} else if (page.getUrl().regex(URL_ARTICLE_PATTERN).match()) {
 			SpringerArticleInfo info = getSpringerArticleInfo(page);
 			page.putField("info", info);
 		}
@@ -44,7 +44,7 @@ public class SpringerArticleProcessor implements PageProcessor {
 	private SpringerArticleInfo getSpringerArticleInfo(Page page) {
 		SpringerArticleInfo info = new SpringerArticleInfo();
 		info.setJournalTitle(page.getHtml().xpath("//span[@class='JournalTitle']/html()").toString());
-		info.setExtractDate(DateFormatUtils.format(new Date(), "yyyy-MM-dd"));
+		info.setExtractDate(DateFormatUtils.format(new Date(), "yyyyMMdd"));
 		info.setArticleTitle(page.getHtml().xpath("//h1[@class='ArticleTitle']/html()").toString());
 		info.setArticleCitationYear(page.getHtml().xpath("//span[@class='ArticleCitation_Year']/time/@datetime").toString());
 		info.setArticleCitationVolume(
@@ -52,7 +52,7 @@ public class SpringerArticleProcessor implements PageProcessor {
 		info.setArticleCitationIssue(page.getHtml().xpath("//a[@class='ArticleCitation_Issue']/@title").toString());
 		info.setArticleCitationPages(
 			StringUtils.removeStart(page.getHtml().xpath("//span[@class='ArticleCitation_Pages']/text(0)").toString(), " "));
-		info.setAuthors(DataUtils.transformNodeList(page.getHtml().xpath("//span[@class='authors__name']/text(0)")));
+		info.setAuthors(DataUtils.transformNodeList(page.getHtml().xpath("//span[@class='authors__name']/text(0)"), ","));
 		info.setAffiliations(extractAffiliations(page.getHtml().xpath("//div[@class='content authors-affiliations u-interface']")));
 
 		info.setFirstOnline(page.getHtml().xpath("//dd[@class='article-dates__first-online']/time/@datetime").toString());
@@ -134,12 +134,7 @@ public class SpringerArticleProcessor implements PageProcessor {
 	}
 
 	private String extractKeywords(Selectable keywords) {
-		List<String> list = new ArrayList<>();
-		for (Selectable keyword : keywords.nodes()) {
-			list.add(StringUtils.removeEnd(keyword.toString(), "&nbsp;"));
-		}
-
-		return list.isEmpty() ? null : StringUtils.join(list, ",");
+		return DataUtils.transformNodeList(keywords, "&nbsp;", ",");
 	}
 
 	@Override

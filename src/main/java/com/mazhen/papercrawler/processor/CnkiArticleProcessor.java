@@ -3,16 +3,21 @@ package com.mazhen.papercrawler.processor;
 import com.mazhen.papercrawler.entity.CnkiArticleInfo;
 import com.mazhen.papercrawler.util.DataUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.downloader.selenium.SeleniumDownloader;
 import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Selectable;
 
+import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by smithma on 24/05/2017.
@@ -21,33 +26,52 @@ import java.util.Date;
 @Component
 public class CnkiArticleProcessor implements PageProcessor {
 
-	private static final String URL_JOURNAL = "(https://link\\.springer\\.com/journal/[\\d\\-]+/[\\d\\-]+/[\\d\\-]+/page/[\\d\\-]+)";
+	public static final String URL_JOURNAL = "http://navi.cnki.net/KNavi/JournalDetail?pcode=CJFD&pykm=XFKJ";
 
-	private static final String URL_ARTICLE = "(https://link\\.springer\\.com/article/[\\S\\-]+(?<!html)$)";
+	public static final String URL_ARTICLE_LIST_PREFIX = "http://navi.cnki.net/knavi/JournalDetail/GetArticleList";
 
-	private Site site = Site.me().setCycleRetryTimes(3).setTimeOut(10000);
+	private static final String URL_ARTICLE_PREFIX = "http://kns.cnki.net/kcms/detail/detail.aspx?";
 
-	//	@Override
-	//	public void process(Page page) {
-	//		page.addTargetRequests(page.getHtml().links().regex(URL_JOURNAL).all());
-	//
-	//		if (page.getUrl().regex(URL_JOURNAL).match()) {
-	//			page.addTargetRequests(page.getHtml().links().regex(URL_ARTICLE).all());
-	//		} else if (page.getUrl().regex(URL_ARTICLE).match()) {
-	//			CnkiArticleInfo info = getCnkiArticleInfo(page);
-	//			page.putField("info", info);
-	//		}
-	//	}
+	private Site site = Site.me().setCharset("UTF-8").setCycleRetryTimes(3).setTimeOut(10000);
 
 	@Override
 	public void process(Page page) {
-		CnkiArticleInfo info = getCnkiArticleInfo(page);
-		log.info("info: " + info.toString());
+		if (URL_JOURNAL.equals(page.getRequest().getUrl())) {
+			addArticleListUrls(page);
+		} else if (StringUtils.startsWith(page.getUrl().toString(), URL_ARTICLE_LIST_PREFIX)) {
+			addArticleUrls(page);
+		} else if (StringUtils.startsWith(page.getUrl().toString(), URL_ARTICLE_PREFIX)) {
+			CnkiArticleInfo info = getCnkiArticleInfo(page);
+			page.putField("info", info);
+		}
+	}
+
+	private void addArticleListUrls(Page page) {
+		try (SeleniumDownloader downloader = new SeleniumDownloader("/papercrawler/driver/chromedriver")) {
+			Spider menuSpider = Spider.create(new CnkiMenuProcessor()).setDownloader(downloader.setSleepTime(5000));
+			ResultItems result = menuSpider.get(URL_JOURNAL);
+			List<String> articleListUrls = result.get("articleListUrls");
+			for (String url : articleListUrls) {
+				page.addTargetRequest(url);
+			}
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+
+	private void addArticleUrls(Page page) {
+		List<String> articleUrls = page.getHtml().xpath("//span[@class='name']").links().all();
+		for (String articleUrl : articleUrls) {
+			String params = articleUrl.substring(articleUrl.indexOf('&'));
+			String url = URL_ARTICLE_PREFIX + params;
+			page.addTargetRequest(url);
+		}
 	}
 
 	private CnkiArticleInfo getCnkiArticleInfo(Page page) {
 		CnkiArticleInfo info = new CnkiArticleInfo();
 		info.setExtractDate(DateFormatUtils.format(new Date(), "yyyy-MM-dd"));
+		info.setUrl(page.getUrl().toString());
 
 		processTitleDiv(page.getHtml().xpath("//div[@class='wxTitle']"), info);
 		processBaseInfoDiv(page.getHtml().xpath("//div[@class='wxBaseinfo']"), info);
@@ -55,15 +79,30 @@ public class CnkiArticleProcessor implements PageProcessor {
 
 		info.setCitations(DataUtils.removeBracket(
 			page.getHtml().xpath("//div[@class='MapAreaLeft']/div[@class='map']/div[@class='yzwx']/span/text(0)").toString()));
-		info.setUrl(page.getUrl().toString());
 
 		return info;
 	}
 
 	private void processTitleDiv(Selectable titleDiv, CnkiArticleInfo info) {
 		info.setArticleTitle(titleDiv.xpath("//h2[@class='title']/text(0)").toString());
-		info.setAuthors(DataUtils.transformNodeList(titleDiv.xpath("//div[@class='author']/span/a/text(0)")));
-		info.setAffiliations(DataUtils.transformNodeList(titleDiv.xpath("//div[@class='orgn']/span/a/text(0)")));
+		info.setAuthors(DataUtils.transformNodeList(titleDiv.xpath("//div[@class='author']/span/a/text(0)"), ","));
+
+		String filename = DataUtils.getCnkiUrlFilename(info.getUrl());
+		if (Integer.valueOf(filename) > 200004036) {
+			String url = WanfangArticleProcessor.URL_ARTICLE_PREFIX + filename;
+			Spider wanfangSpider = Spider.create(new WanfangArticleProcessor());
+			ResultItems result = wanfangSpider.get(url);
+			if (result != null && StringUtils.isNotBlank(result.get("affiliations"))) {
+				info.setAffiliations(result.get("affiliations"));
+				wanfangSpider.close();
+
+			} else {
+				info.setAffiliations(DataUtils.transformNodeList(titleDiv.xpath("//div[@class='orgn']/span/a/text(0)"), ";"));
+			}
+		} else {
+			info.setAffiliations(DataUtils.transformNodeList(titleDiv.xpath("//div[@class='orgn']/span/a/text(0)"), ";"));
+		}
+
 	}
 
 	private void processBaseInfoDiv(Selectable baseInfoDiv, CnkiArticleInfo info) {
@@ -73,9 +112,9 @@ public class CnkiArticleProcessor implements PageProcessor {
 			if ("catalog_ABSTRACT".equals(id)) {
 				info.setSummary(node.xpath("//span[@id='ChDivSummary']/text(0)").toString());
 			} else if ("catalog_FUND".equals(id)) {
-				info.setFund(DataUtils.transformNodeList(node.xpath("/p/a/text(0)"), "； "));
+				info.setFund(DataUtils.transformNodeList(node.xpath("/p/a/text(0)"), "； ", ","));
 			} else if ("catalog_KEYWORD".equals(id)) {
-				info.setKeywords(DataUtils.transformNodeList(node.xpath("/p/a/text(0)"), "; "));
+				info.setKeywords(DataUtils.transformNodeList(node.xpath("/p/a/text(0)"), "; ", ","));
 			} else if ("catalog_ZTCLS".equals(id)) {
 				info.setCategory(node.xpath("/p/text(0)").toString());
 			}
@@ -95,7 +134,8 @@ public class CnkiArticleProcessor implements PageProcessor {
 	}
 
 	public static void main(String[] args) {
-		Spider.create(new CnkiArticleProcessor()).addPipeline(new ConsolePipeline()).addUrl(
-			"http://kns.cnki.net/kcms/detail/detail.aspx?dbcode=CJFD&filename=XFKJ201702002&dbname=CJFDTEMP").run();
+		Spider.create(new CnkiArticleProcessor()).addPipeline(new ConsolePipeline())
+			.addUrl(URL_JOURNAL)
+			.run();
 	}
 }

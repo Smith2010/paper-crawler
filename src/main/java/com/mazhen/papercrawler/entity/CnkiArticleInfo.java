@@ -11,11 +11,10 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "cnki_article_info",
-	uniqueConstraints = @UniqueConstraint(columnNames = { "doi", "extractDate" }),
+	uniqueConstraints = @UniqueConstraint(columnNames = { "articleTitle", "extractDate" }),
 	indexes = {
-		@Index(name = "cnki_article_info_idx01", columnList = "doi"),
-		@Index(name = "cnki_article_info_idx02", columnList = "extractDate"),
-		@Index(name = "cnki_article_info_idx03", columnList = "articleTitle")
+		@Index(name = "cnki_article_info_idx01", columnList = "articleTitle"),
+		@Index(name = "cnki_article_info_idx02", columnList = "extractDate")
 	})
 public class CnkiArticleInfo {
 
@@ -50,7 +49,7 @@ public class CnkiArticleInfo {
 	@Column(name = "fund", columnDefinition = "varchar(3000)")
 	private String fund;
 
-	@Column(name = "category", columnDefinition = "varchar(20)")
+	@Column(name = "category", columnDefinition = "varchar(255)")
 	private String category;
 
 	@Column(name = "citations", columnDefinition = "varchar(10)")
