@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.pipeline.ConsolePipeline;
 
 /**
  * Created by smithma on 10/06/2017.
@@ -17,7 +16,7 @@ import us.codecraft.webmagic.pipeline.ConsolePipeline;
 public class SpiderConfiguration {
 
 	@Bean(name="springerSpider")
-	public Spider SpringerSpider(@Qualifier("springerArticleProcessor") SpringerArticleProcessor springerArticleProcessor,
+	public Spider springerSpider(@Qualifier("springerArticleProcessor") SpringerArticleProcessor springerArticleProcessor,
 		@Qualifier("springerArticlePipeline") SpringerArticlePipeline springerArticlePipeline) {
 		return Spider.create(springerArticleProcessor)
 			.addPipeline(springerArticlePipeline)
@@ -27,7 +26,7 @@ public class SpiderConfiguration {
 	}
 
 	@Bean(name="cnkiSpider")
-	public Spider CnkiSpider(@Qualifier("cnkiArticleProcessor") CnkiArticleProcessor cnkiArticleProcessor,
+	public Spider cnkiSpider(@Qualifier("cnkiArticleProcessor") CnkiArticleProcessor cnkiArticleProcessor,
 		@Qualifier("cnkiArticlePipeline") CnkiArticlePipeline cnkiArticlePipeline) {
 		return Spider.create(cnkiArticleProcessor)
 			.addPipeline(cnkiArticlePipeline)
