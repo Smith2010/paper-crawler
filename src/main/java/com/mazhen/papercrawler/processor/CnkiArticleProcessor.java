@@ -54,6 +54,7 @@ public class CnkiArticleProcessor implements PageProcessor {
 			for (String url : articleListUrls) {
 				page.addTargetRequest(url);
 			}
+			menuSpider.close();
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		}
@@ -70,7 +71,7 @@ public class CnkiArticleProcessor implements PageProcessor {
 
 	private CnkiArticleInfo getCnkiArticleInfo(Page page) {
 		CnkiArticleInfo info = new CnkiArticleInfo();
-		info.setExtractDate(DateFormatUtils.format(new Date(), "yyyy-MM-dd"));
+		info.setExtractDate(DateFormatUtils.format(new Date(), "yyyyMMdd"));
 		info.setUrl(page.getUrl().toString());
 
 		processTitleDiv(page.getHtml().xpath("//div[@class='wxTitle']"), info);
@@ -95,7 +96,6 @@ public class CnkiArticleProcessor implements PageProcessor {
 			if (result != null && StringUtils.isNotBlank(result.get("affiliations"))) {
 				info.setAffiliations(result.get("affiliations"));
 				wanfangSpider.close();
-
 			} else {
 				info.setAffiliations(DataUtils.transformNodeList(titleDiv.xpath("//div[@class='orgn']/span/a/text(0)"), ";"));
 			}

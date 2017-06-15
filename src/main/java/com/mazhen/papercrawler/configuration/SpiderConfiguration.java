@@ -21,7 +21,6 @@ public class SpiderConfiguration {
 		@Qualifier("springerArticlePipeline") SpringerArticlePipeline springerArticlePipeline) {
 		return Spider.create(springerArticleProcessor)
 			.addPipeline(springerArticlePipeline)
-			.addPipeline(new ConsolePipeline())
 			.addUrl("https://link.springer.com/journal/volumesAndIssues/10694")
 			.addUrl("https://link.springer.com/journal/volumesAndIssues/40038")
 			.thread(5);
@@ -32,7 +31,6 @@ public class SpiderConfiguration {
 		@Qualifier("cnkiArticlePipeline") CnkiArticlePipeline cnkiArticlePipeline) {
 		return Spider.create(cnkiArticleProcessor)
 			.addPipeline(cnkiArticlePipeline)
-			.addPipeline(new ConsolePipeline())
 			.addUrl(CnkiArticleProcessor.URL_JOURNAL)
 			.thread(5);
 	}

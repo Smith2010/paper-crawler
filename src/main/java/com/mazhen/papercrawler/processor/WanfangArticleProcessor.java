@@ -29,14 +29,45 @@ public class WanfangArticleProcessor implements PageProcessor {
 
 	@Override
 	public void process(Page page) {
-		String affiliations = extractAffiliations(page.getHtml().xpath("//div[@class='fixed-width baseinfo-feild']"));
-
-		page.putField("affiliations", affiliations);
+		String authorAffiliationsMapping = extractAuthorAffiliationsMapping(page.getHtml().xpath("//div[@class='fixed-width baseinfo-feild']"));
+		page.putField("affiliations", authorAffiliationsMapping);
 	}
 
-	private String extractAffiliations(Selectable baseInfos) {
-		List<String> affiliationList = new ArrayList<>();
+	private String extractAuthorAffiliationsMapping(Selectable baseInfos) {
+		List<String> affiliationList = extractAffiliationList(baseInfos);
+		Map<String, String> authorMap = extractAuthorMap(baseInfos, affiliationList);
+
+		if (authorMap.isEmpty()) {
+			return null;
+		}
+
+		JSONObject json = new JSONObject();
+		json.putAll(authorMap);
+
+		return json.toString();
+	}
+
+	private Map<String, String> extractAuthorMap(Selectable baseInfos, List<String> affiliationList) {
 		Map<String, String> authorMap = new HashMap<>();
+
+		for (Selectable info : baseInfos.xpath("//div[@class='row']").nodes()) {
+			String pre = info.xpath("//span[@class='pre']/text(0)").toString();
+			if (StringUtils.equals(pre, "作者：")) {
+				List<String> names = info.xpath("//span[@class='text']/a/text(0)").all();
+
+				for (int i = 0; i < names.size(); i++) {
+					String supIndex = String.valueOf(i + 1);
+					String indexStr = StringUtils.substring(info.xpath("//span[@class='text']/sup[" + supIndex + "]/text(0)").toString(), 1, 2);
+					int index = StringUtils.isBlank(indexStr) ? 0 : Integer.valueOf(indexStr) - 1;
+					authorMap.put(names.get(i), affiliationList.get(index));
+				}
+			}
+		}
+		return authorMap;
+	}
+
+	private List<String> extractAffiliationList(Selectable baseInfos) {
+		List<String> affiliationList = new ArrayList<>();
 
 		for (Selectable info : baseInfos.xpath("//div[@class='row']").nodes()) {
 			String pre = info.xpath("//span[@class='pre']/text(0)").toString();
@@ -47,43 +78,11 @@ public class WanfangArticleProcessor implements PageProcessor {
 				} else {
 					affiliationList.addAll(info.xpath("//span[@class='text']/span/text(0)").all());
 				}
-			} else if (StringUtils.equals(pre, "作者：")) {
-				List<String> names = info.xpath("//span[@class='text']/a/text(0)").all();
-
-				for (int i = 0; i < names.size(); i++) {
-					authorMap.put(names.get(i), info.xpath("//span[@class='text']/sup/text(0)").toString());
-				}
+				break;
 			}
 		}
 
-		if (authorMap.isEmpty()) {
-			return null;
-		}
-//
-//		Map<String, List<String>> authorMap = extractAuthorMap(baseInfo.xpath("//ul[@class='test-contributor-names']"), affiliationMap);
-
-		JSONObject json = new JSONObject();
-		json.putAll(authorMap);
-
-		return json.toString();
-	}
-
-	private Map<String, List<String>> extractAuthorMap(Selectable names, Map<String, String> affiliationMap) {
-		Map<String, List<String>> authorMap = new HashMap<>();
-
-		for (Selectable name : names.xpath("//li").nodes()) {
-			if (StringUtils.isBlank(name.xpath("/li/@data-affiliation").toString())) {
-				String author = name.xpath("//span[@itemprop='name']/text(0)").toString();
-				List<String> indexes = name.xpath("//ul[@data-role='AuthorsIndexes']/li/@data-affiliation").all();
-				List<String> values = new ArrayList<>();
-				for (String index : indexes) {
-					values.add(affiliationMap.get(index));
-				}
-				authorMap.put(author, values);
-			}
-		}
-
-		return authorMap;
+		return affiliationList;
 	}
 
 	@Override

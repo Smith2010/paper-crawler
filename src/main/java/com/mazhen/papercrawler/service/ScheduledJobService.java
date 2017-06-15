@@ -23,16 +23,25 @@ public class ScheduledJobService {
 	@Qualifier("cnkiSpider")
 	private Spider cnkiSpider;
 
-	@Scheduled(fixedRate = 500000000)
-	public void execute() {
+	@Scheduled(cron = "0 0 1 * * ?")
+	public void executeSpringerSpider() {
 		StopWatch watch = new StopWatch();
 		watch.start();
 
-//		springerSpider.run();
+		springerSpider.run();
+
+		watch.stop();
+		log.info("Fetch Springer data in " + watch.getTime() / 1000 + " second.");
+	}
+
+	@Scheduled(cron = "0 0 2 * * ?")
+	public void executeCnkiSpider() {
+		StopWatch watch = new StopWatch();
+		watch.start();
 
 		cnkiSpider.run();
 
 		watch.stop();
-		log.info("Fetch data in " + watch.getTime() / 1000 + " second.");
+		log.info("Fetch CNKI data in " + watch.getTime() / 1000 + " second.");
 	}
 }
