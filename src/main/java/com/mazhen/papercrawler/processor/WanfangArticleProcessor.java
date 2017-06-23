@@ -6,8 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
-import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Selectable;
 
@@ -25,7 +23,7 @@ public class WanfangArticleProcessor implements PageProcessor {
 
 	public static final String URL_ARTICLE_PREFIX = "http://d.wanfangdata.com.cn/Periodical/xfkxyjs";
 
-	private Site site = Site.me().setCharset("UTF-8").setCycleRetryTimes(3).setTimeOut(10000);
+	private Site site = Site.me().setCharset("UTF-8").setCycleRetryTimes(3).setTimeOut(10000).setSleepTime(2000);
 
 	@Override
 	public void process(Page page) {
@@ -88,11 +86,5 @@ public class WanfangArticleProcessor implements PageProcessor {
 	@Override
 	public Site getSite() {
 		return site;
-	}
-
-	public static void main(String[] args) {
-		Spider.create(new WanfangArticleProcessor()).addPipeline(new ConsolePipeline())
-			.addUrl("http://d.wanfangdata.com.cn/Periodical/xfkxyjs201703001")
-			.run();
 	}
 }

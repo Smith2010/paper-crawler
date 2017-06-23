@@ -11,10 +11,11 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "cnki_article_info",
-	uniqueConstraints = @UniqueConstraint(columnNames = { "articleTitle", "extractDate" }),
+	uniqueConstraints = @UniqueConstraint(columnNames = { "articleTitle", "extractDate", "articleCitationYear" }),
 	indexes = {
 		@Index(name = "cnki_article_info_idx01", columnList = "articleTitle"),
-		@Index(name = "cnki_article_info_idx02", columnList = "extractDate")
+		@Index(name = "cnki_article_info_idx02", columnList = "extractDate"),
+		@Index(name = "cnki_article_info_idx03", columnList = "articleCitationYear")
 	})
 public class CnkiArticleInfo {
 

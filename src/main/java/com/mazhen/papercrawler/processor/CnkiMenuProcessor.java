@@ -16,7 +16,7 @@ import java.util.List;
 @Component
 public class CnkiMenuProcessor implements PageProcessor {
 
-	private Site site = Site.me().setCycleRetryTimes(3).setTimeOut(10000);
+	private Site site = Site.me().setCycleRetryTimes(3).setTimeOut(10000).setSleepTime(2000);
 
 	@Override
 	public void process(Page page) {

@@ -9,8 +9,6 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
-import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Selectable;
 
@@ -27,7 +25,7 @@ public class SpringerArticleProcessor implements PageProcessor {
 
 	private static final String URL_ARTICLE_PATTERN = "(https://link\\.springer\\.com/article/[\\S\\-]+(?<!html)$)";
 
-	private Site site = Site.me().setCharset("UTF-8").setCycleRetryTimes(3).setTimeOut(10000);
+	private Site site = Site.me().setCharset("UTF-8").setCycleRetryTimes(3).setTimeOut(10000).setSleepTime(2000);
 
 	@Override
 	public void process(Page page) {
@@ -140,10 +138,5 @@ public class SpringerArticleProcessor implements PageProcessor {
 	@Override
 	public Site getSite() {
 		return site;
-	}
-
-	public static void main(String[] args) {
-		Spider.create(new SpringerArticleProcessor()).addPipeline(new ConsolePipeline()).addUrl(
-			"https://link.springer.com/article/10.1007/s10694-016-0618-y").run();
 	}
 }

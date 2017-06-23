@@ -11,7 +11,6 @@ import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.selenium.SeleniumDownloader;
-import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Selectable;
 
@@ -32,7 +31,7 @@ public class CnkiArticleProcessor implements PageProcessor {
 
 	private static final String URL_ARTICLE_PREFIX = "http://kns.cnki.net/kcms/detail/detail.aspx?";
 
-	private Site site = Site.me().setCharset("UTF-8").setCycleRetryTimes(3).setTimeOut(10000);
+	private Site site = Site.me().setCharset("UTF-8").setCycleRetryTimes(3).setTimeOut(10000).setSleepTime(2000);
 
 	@Override
 	public void process(Page page) {
@@ -54,7 +53,6 @@ public class CnkiArticleProcessor implements PageProcessor {
 			for (String url : articleListUrls) {
 				page.addTargetRequest(url);
 			}
-			menuSpider.close();
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		}
@@ -131,11 +129,5 @@ public class CnkiArticleProcessor implements PageProcessor {
 	@Override
 	public Site getSite() {
 		return site;
-	}
-
-	public static void main(String[] args) {
-		Spider.create(new CnkiArticleProcessor()).addPipeline(new ConsolePipeline())
-			.addUrl(URL_JOURNAL)
-			.run();
 	}
 }
