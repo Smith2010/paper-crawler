@@ -1,0 +1,10 @@
+[Unit]
+Description=Paper Crawler service
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/papercrawler/app/paper-crawler.jar
+
+[Install]
+WantedBy=multi-user.target
