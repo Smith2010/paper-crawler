@@ -4,7 +4,7 @@ After=syslog.target
 
 [Service]
 Type=simple
-ExecStart=/papercrawler/app/paper-crawler.jar
+ExecStart=/usr/local/java/bin/java -jar /papercrawler/app/paper-crawler.jar
 
 [Install]
 WantedBy=multi-user.target
