@@ -30,7 +30,7 @@ public class SpringerArticleInfo implements Serializable {
 	@Column(name = "extractDate", columnDefinition = "varchar(20)", nullable = false)
 	private String extractDate;
 
-	@Column(name = "articleTitle", columnDefinition = "varchar(255)", nullable = false)
+	@Column(name = "articleTitle", columnDefinition = "varchar(1000)", nullable = false)
 	private String articleTitle;
 
 	@Column(name = "articleCitationYear", columnDefinition = "varchar(20)")
@@ -45,7 +45,7 @@ public class SpringerArticleInfo implements Serializable {
 	@Column(name = "articleCitationPages", columnDefinition = "varchar(20)")
 	private String articleCitationPages;
 
-	@Column(name = "authors", columnDefinition = "varchar(255)")
+	@Column(name = "authors", columnDefinition = "varchar(1000)")
 	private String authors;
 
 	@Column(name = "affiliations", columnDefinition = "varchar(3000)")
