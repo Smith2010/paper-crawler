@@ -86,7 +86,7 @@ public class CnkiArticleProcessor implements PageProcessor {
 		info.setArticleTitle(titleDiv.xpath("//h2[@class='title']/text(0)").toString());
 		info.setAuthors(DataUtils.transformNodeList(titleDiv.xpath("//div[@class='author']/span/a/text(0)"), ","));
 
-		String filename = DataUtils.getCnkiUrlFilename(info.getUrl());
+		String filename = DataUtils.getCnkiUrlFilename(info.getUrl()).replace("S", "");
 		if (Integer.valueOf(filename) > 200004036) {
 			String url = WanfangArticleProcessor.URL_ARTICLE_PREFIX + filename;
 			Spider wanfangSpider = Spider.create(new WanfangArticleProcessor());
