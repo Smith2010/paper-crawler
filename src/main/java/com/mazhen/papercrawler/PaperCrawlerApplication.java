@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class PaperCrawlerApplication implements CommandLineRunner {
 
-
 	@Autowired
 	private SpiderService spiderService;
 
@@ -21,6 +20,10 @@ public class PaperCrawlerApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
+		if (args.length == 0) {
+			return;
+		}
+
 		if ("springer".equals(args[0])) {
 			spiderService.executeSpringerSpider();
 		} else if ("cnki".equals(args[0])) {

@@ -31,6 +31,6 @@ public class SpiderConfiguration {
 		return Spider.create(cnkiArticleProcessor)
 			.addPipeline(cnkiArticlePipeline)
 			.addUrl(CnkiArticleProcessor.URL_JOURNAL)
-			.thread(5);
+			.thread(3);
 	}
 }
