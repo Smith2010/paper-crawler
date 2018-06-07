@@ -30,7 +30,6 @@ public class SpiderConfiguration {
 		@Qualifier("cnkiArticlePipeline") CnkiArticlePipeline cnkiArticlePipeline) {
 		return Spider.create(cnkiArticleProcessor)
 			.addPipeline(cnkiArticlePipeline)
-			.addUrl(CnkiArticleProcessor.URL_JOURNAL)
-			.thread(3);
+			.addUrl(CnkiArticleProcessor.URL_JOURNAL);
 	}
 }
